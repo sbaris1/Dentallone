@@ -1,0 +1,290 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // You can change this to mysql, sqlite, etc.
+  url      = env("DATABASE_URL")
+}
+
+// User model with role-based access
+model User {
+  id                String            @id @default(uuid())
+  email             String            @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              UserRole
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  doctor            Doctor?
+  secretary         Secretary?
+  patient           Patient?
+  branch            Branch?           @relation(fields: [branchId], references: [id])
+  branchId          String?
+  notifications     Notification[]
+}
+
+enum UserRole {
+  ADMIN
+  DOCTOR
+  SECRETARY
+  PATIENT
+}
+
+// Branch model
+model Branch {
+  id                String            @id @default(uuid())
+  name              String
+  address           String
+  phone             String
+  email             String
+  status            BranchStatus      @default(ACTIVE)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  users             User[]
+  doctors           Doctor[]
+  patients          Patient[]
+  appointments      Appointment[]
+  inventory         InventoryItem[]
+  invoices          Invoice[]
+}
+
+enum BranchStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+}
+
+// Doctor model
+model Doctor {
+  id                String            @id @default(uuid())
+  user              User              @relation(fields: [userId], references: [id])
+  userId            String            @unique
+  specialty         String
+  availability      Availability      @default(FULL_TIME)
+  bio               String?
+  rating            Float?
+  branch            Branch            @relation(fields: [branchId], references: [id])
+  branchId          String
+  appointments      Appointment[]
+  treatments        TreatmentDoctor[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum Availability {
+  FULL_TIME
+  PART_TIME
+  WEEKENDS
+}
+
+// Secretary model
+model Secretary {
+  id                String            @id @default(uuid())
+  user              User              @relation(fields: [userId], references: [id])
+  userId            String            @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+// Patient model
+model Patient {
+  id                String            @id @default(uuid())
+  user              User              @relation(fields: [userId], references: [id])
+  userId            String            @unique
+  dateOfBirth       DateTime
+  gender            Gender
+  phone             String
+  address           String?
+  emergencyContact  String?
+  medicalHistory    String?
+  insuranceInfo     String?
+  branch            Branch            @relation(fields: [branchId], references: [id])
+  branchId          String
+  appointments      Appointment[]
+  invoices          Invoice[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// Treatment model
+model Treatment {
+  id                String            @id @default(uuid())
+  name              String
+  category          String
+  description       String?
+  duration          Int               // in minutes
+  price             Float
+  insuranceCovered  Boolean           @default(true)
+  status            TreatmentStatus   @default(ACTIVE)
+  doctors           TreatmentDoctor[]
+  appointmentTreatments AppointmentTreatment[]
+  inventoryItems    TreatmentInventory[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum TreatmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// Many-to-many relation between Treatment and Doctor
+model TreatmentDoctor {
+  id                String            @id @default(uuid())
+  treatment         Treatment         @relation(fields: [treatmentId], references: [id])
+  treatmentId       String
+  doctor            Doctor            @relation(fields: [doctorId], references: [id])
+  doctorId          String
+  createdAt         DateTime          @default(now())
+
+  @@unique([treatmentId, doctorId])
+}
+
+// Appointment model
+model Appointment {
+  id                String            @id @default(uuid())
+  patient           Patient           @relation(fields: [patientId], references: [id])
+  patientId         String
+  doctor            Doctor            @relation(fields: [doctorId], references: [id])
+  doctorId          String
+  branch            Branch            @relation(fields: [branchId], references: [id])
+  branchId          String
+  date              DateTime
+  duration          Int               // in minutes
+  status            AppointmentStatus @default(SCHEDULED)
+  notes             String?
+  treatments        AppointmentTreatment[]
+  invoice           Invoice?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// Many-to-many relation between Appointment and Treatment
+model AppointmentTreatment {
+  id                String            @id @default(uuid())
+  appointment       Appointment       @relation(fields: [appointmentId], references: [id])
+  appointmentId     String
+  treatment         Treatment         @relation(fields: [treatmentId], references: [id])
+  treatmentId       String
+  notes             String?
+  createdAt         DateTime          @default(now())
+
+  @@unique([appointmentId, treatmentId])
+}
+
+// Invoice model
+model Invoice {
+  id                String            @id @default(uuid())
+  invoiceNumber     String            @unique
+  patient           Patient           @relation(fields: [patientId], references: [id])
+  patientId         String
+  appointment       Appointment?      @relation(fields: [appointmentId], references: [id])
+  appointmentId     String?           @unique
+  branch            Branch            @relation(fields: [branchId], references: [id])
+  branchId          String
+  amount            Float
+  tax               Float             @default(0)
+  discount          Float             @default(0)
+  totalAmount       Float
+  status            InvoiceStatus     @default(PENDING)
+  paymentMethod     PaymentMethod?
+  dueDate           DateTime
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum InvoiceStatus {
+  PAID
+  PENDING
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  INSURANCE
+  MOBILE_PAYMENT
+}
+
+// Inventory model
+model InventoryItem {
+  id                String            @id @default(uuid())
+  name              String
+  category          String
+  quantity          Int
+  unit              String
+  minStock          Int
+  price             Float
+  supplier          String
+  expiryDate        DateTime?
+  branch            Branch            @relation(fields: [branchId], references: [id])
+  branchId          String
+  status            InventoryStatus   @default(IN_STOCK)
+  treatments        TreatmentInventory[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum InventoryStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+}
+
+// Many-to-many relation between Treatment and Inventory
+model TreatmentInventory {
+  id                String            @id @default(uuid())
+  treatment         Treatment         @relation(fields: [treatmentId], references: [id])
+  treatmentId       String
+  inventoryItem     InventoryItem     @relation(fields: [inventoryItemId], references: [id])
+  inventoryItemId   String
+  quantityRequired  Int
+  createdAt         DateTime          @default(now())
+
+  @@unique([treatmentId, inventoryItemId])
+}
+
+// Notification model
+model Notification {
+  id                String            @id @default(uuid())
+  user              User              @relation(fields: [userId], references: [id])
+  userId            String
+  title             String
+  message           String
+  type              NotificationType
+  isRead            Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+}
+
+enum NotificationType {
+  APPOINTMENT_REMINDER
+  APPOINTMENT_CONFIRMATION
+  APPOINTMENT_CANCELLATION
+  TREATMENT_FOLLOWUP
+  BILLING_REMINDER
+  SYSTEM_NOTIFICATION
+}
