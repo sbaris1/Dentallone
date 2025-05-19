@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "Welcome to DentAllOne",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "dashboard": "Dashboard"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "loginButton": "Sign In",
+    "registerButton": "Sign Up"
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "appointments": "Appointments",
+    "patients": "Patients",
+    "doctors": "Doctors",
+    "branches": "Branches",
+    "treatments": "Treatments",
+    "invoices": "Invoices",
+    "inventory": "Inventory"
+  }
+}

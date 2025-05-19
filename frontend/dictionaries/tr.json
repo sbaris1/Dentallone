@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "DentAllOne'a Hoş Geldiniz",
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "logout": "Çıkış Yap",
+    "dashboard": "Kontrol Paneli"
+  },
+  "auth": {
+    "email": "E-posta",
+    "password": "Şifre",
+    "forgotPassword": "Şifremi Unuttum?",
+    "loginButton": "Giriş Yap",
+    "registerButton": "Kayıt Ol"
+  },
+  "dashboard": {
+    "overview": "Genel Bakış",
+    "appointments": "Randevular",
+    "patients": "Hastalar",
+    "doctors": "Doktorlar",
+    "branches": "Şubeler",
+    "treatments": "Tedaviler",
+    "invoices": "Faturalar",
+    "inventory": "Envanter"
+  }
+}

@@ -1,0 +1,457 @@
+@baseUrl = http://localhost:3001/api
+@authToken = YOUR_AUTH_TOKEN_AFTER_LOGIN
+
+### Variables for testing
+@adminEmail = admin@example.com
+@adminPassword = password123
+@doctorEmail = doctor@example.com
+@doctorPassword = password123
+@patientEmail = patient@example.com
+@patientPassword = password123
+
+### ----------------------------------------
+### Authentication Endpoints
+### ----------------------------------------
+
+### Register a new admin user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}",
+  "firstName": "Admin",
+  "lastName": "User",
+  "role": "ADMIN"
+}
+
+### Register a new doctor
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{doctorEmail}}",
+  "password": "{{doctorPassword}}",
+  "firstName": "Doctor",
+  "lastName": "Smith",
+  "role": "DOCTOR"
+}
+
+### Register a new patient
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{patientEmail}}",
+  "password": "{{patientPassword}}",
+  "firstName": "Patient",
+  "lastName": "Johnson",
+  "role": "PATIENT"
+}
+
+### Login as admin
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### Login as patient
+# @name loginPatient
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{patientEmail}}",
+  "password": "{{patientPassword}}"
+}
+
+### Set the auth token from the login response
+@authTokenAdmin = {{loginAdmin.response.body.token}}
+@authTokenPatient = {{loginPatient.response.body.token}}
+
+### Get admin user profile
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authTokenAdmin}}
+
+### Get patient user profile
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authTokenPatient}}
+### ----------------------------------------
+### Branch Endpoints
+### ----------------------------------------
+
+### Create a new branch
+# @name createBranch
+POST {{baseUrl}}/branches
+Authorization: Bearer {{authTokenAdmin}}
+Content-Type: application/json
+
+{
+  "name": "Main Branch",
+  "address": "123 Dental Street, Medical City",
+  "phone": "555-123-4567",
+  "email": "main@dentallone.com",
+  "status": "ACTIVE"
+}
+
+### Get branch ID from response
+@branchId = {{createBranch.response.body.id}}
+
+### Get all branches
+GET {{baseUrl}}/branches
+Authorization: Bearer {{authTokenAdmin}}
+
+### Get branch by ID
+GET {{baseUrl}}/branches/{{branchId}}
+Authorization: Bearer {{authTokenAdmin}}
+
+### Update branch
+PUT {{baseUrl}}/branches/{{branchId}}
+Authorization: Bearer {{authTokenAdmin}}
+Content-Type: application/json
+
+{
+  "name": "Main Branch Updated",
+  "address": "123 Dental Avenue, Medical City",
+  "phone": "555-123-4567",
+  "email": "main@dentallone.com",
+  "status": "ACTIVE"
+}
+
+### ----------------------------------------
+### Doctor Endpoints
+### ----------------------------------------
+
+### Create a doctor profile
+# @name createDoctor
+POST {{baseUrl}}/doctors
+Authorization: Bearer {{authTokenAdmin}}
+Content-Type: application/json
+
+{
+  "userId": "USER_ID_FROM_REGISTRATION",
+  "specialty": "Orthodontist",
+  "availability": "FULL_TIME",
+  "bio": "Experienced orthodontist with 10 years of practice",
+  "branchId": "{{branchId}}"
+}
+
+### Get doctor ID from response
+@doctorId = {{createDoctor.response.body.id}}
+
+### Get all doctors
+GET {{baseUrl}}/doctors
+Authorization: Bearer {{authTokenAdmin}}
+
+### Get doctor by ID
+GET {{baseUrl}}/doctors/{{doctorId}}
+Authorization: Bearer {{authTokenAdmin}}
+
+### Update doctor
+PUT {{baseUrl}}/doctors/{{doctorId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "specialty": "Orthodontist & Pediatric Dentist",
+  "availability": "FULL_TIME",
+  "bio": "Experienced orthodontist with 10+ years of practice",
+  "branchId": "{{branchId}}"
+}
+
+### ----------------------------------------
+### Patient Endpoints
+### ----------------------------------------
+
+### Create a patient profile
+# @name createPatient
+POST {{baseUrl}}/patients
+Authorization: Bearer {{authTokenAdmin}}
+Content-Type: application/json
+
+{
+  "userId": "USER_ID_FROM_REGISTRATION",
+  "dateOfBirth": "1990-01-15T00:00:00.000Z",
+  "gender": "MALE",
+  "phone": "555-987-6543",
+  "address": "456 Patient Road, Residential Area",
+  "emergencyContact": "555-111-2222",
+  "medicalHistory": "No significant medical history",
+  "insuranceInfo": "Insurance #12345",
+  "branchId": "{{branchId}}"
+}
+
+### Get patient ID from response
+@patientId = {{createPatient.response.body.id}}
+
+### Get all patients
+GET {{baseUrl}}/patients
+Authorization: Bearer {{authToken}}
+
+### Get patient by ID
+GET {{baseUrl}}/patients/{{patientId}}
+Authorization: Bearer {{authToken}}
+
+### Update patient
+PUT {{baseUrl}}/patients/{{patientId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "phone": "555-987-6543",
+  "address": "456 Patient Avenue, Residential Area",
+  "emergencyContact": "555-111-2222",
+  "medicalHistory": "No significant medical history. Allergic to penicillin.",
+  "insuranceInfo": "Insurance #12345",
+  "branchId": "{{branchId}}"
+}
+
+### ----------------------------------------
+### Treatment Endpoints
+### ----------------------------------------
+
+### Create a treatment
+# @name createTreatment
+POST {{baseUrl}}/treatments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Dental Cleaning",
+  "category": "Preventive",
+  "description": "Standard dental cleaning procedure",
+  "duration": 60,
+  "price": 120.00,
+  "insuranceCovered": true,
+  "status": "ACTIVE"
+}
+
+### Get treatment ID from response
+@treatmentId = {{createTreatment.response.body.id}}
+
+### Get all treatments
+GET {{baseUrl}}/treatments
+Authorization: Bearer {{authToken}}
+
+### Get treatment by ID
+GET {{baseUrl}}/treatments/{{treatmentId}}
+Authorization: Bearer {{authToken}}
+
+### Update treatment
+PUT {{baseUrl}}/treatments/{{treatmentId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Dental Cleaning",
+  "category": "Preventive",
+  "description": "Standard dental cleaning and polishing procedure",
+  "duration": 45,
+  "price": 125.00,
+  "insuranceCovered": true,
+  "status": "ACTIVE"
+}
+
+### Assign treatment to doctor
+POST {{baseUrl}}/treatments/{{treatmentId}}/doctors
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "doctorId": "{{doctorId}}"
+}
+
+### ----------------------------------------
+### Appointment Endpoints
+### ----------------------------------------
+
+### Create an appointment
+# @name createAppointment
+POST {{baseUrl}}/appointments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "patientId": "{{patientId}}",
+  "doctorId": "{{doctorId}}",
+  "branchId": "{{branchId}}",
+  "date": "2023-06-15T14:00:00.000Z",
+  "duration": 60,
+  "status": "SCHEDULED",
+  "notes": "First time patient",
+  "treatments": ["{{treatmentId}}"]
+}
+
+### Get appointment ID from response
+@appointmentId = {{createAppointment.response.body.id}}
+
+### Get all appointments
+GET {{baseUrl}}/appointments
+Authorization: Bearer {{authToken}}
+
+### Get appointments with filters
+GET {{baseUrl}}/appointments?date=2023-06-15&doctorId={{doctorId}}&status=SCHEDULED
+Authorization: Bearer {{authToken}}
+
+### Get appointment by ID
+GET {{baseUrl}}/appointments/{{appointmentId}}
+Authorization: Bearer {{authToken}}
+
+### Update appointment
+PUT {{baseUrl}}/appointments/{{appointmentId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "patientId": "{{patientId}}",
+  "doctorId": "{{doctorId}}",
+  "branchId": "{{branchId}}",
+  "date": "2023-06-15T15:00:00.000Z",
+  "duration": 45,
+  "status": "CONFIRMED",
+  "notes": "First time patient, rescheduled",
+  "treatments": ["{{treatmentId}}"]
+}
+
+### ----------------------------------------
+### Invoice Endpoints
+### ----------------------------------------
+
+### Create an invoice
+# @name createInvoice
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "invoiceNumber": "INV-2023-001",
+  "patientId": "{{patientId}}",
+  "appointmentId": "{{appointmentId}}",
+  "branchId": "{{branchId}}",
+  "amount": 120.00,
+  "tax": 10.00,
+  "discount": 0.00,
+  "totalAmount": 130.00,
+  "status": "PENDING",
+  "paymentMethod": "CREDIT_CARD",
+  "dueDate": "2023-06-30T00:00:00.000Z",
+  "notes": "Payment due within 15 days"
+}
+
+### Get invoice ID from response
+@invoiceId = {{createInvoice.response.body.id}}
+
+### Get all invoices
+GET {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+
+### Get invoice by ID
+GET {{baseUrl}}/invoices/{{invoiceId}}
+Authorization: Bearer {{authToken}}
+
+### Update invoice
+PUT {{baseUrl}}/invoices/{{invoiceId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "PAID",
+  "paymentMethod": "CREDIT_CARD",
+  "notes": "Payment received on 2023-06-20"
+}
+
+### ----------------------------------------
+### Inventory Endpoints
+### ----------------------------------------
+
+### Create an inventory item
+# @name createInventoryItem
+POST {{baseUrl}}/inventory
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Dental Floss",
+  "category": "Supplies",
+  "quantity": 100,
+  "unit": "pcs",
+  "minStock": 20,
+  "price": 2.50,
+  "supplier": "Dental Supplies Inc.",
+  "expiryDate": "2024-12-31T00:00:00.000Z",
+  "branchId": "{{branchId}}",
+  "status": "IN_STOCK"
+}
+
+### Get inventory item ID from response
+@inventoryItemId = {{createInventoryItem.response.body.id}}
+
+### Get all inventory items
+GET {{baseUrl}}/inventory
+Authorization: Bearer {{authToken}}
+
+### Get inventory item by ID
+GET {{baseUrl}}/inventory/{{inventoryItemId}}
+Authorization: Bearer {{authToken}}
+
+### Update inventory item
+PUT {{baseUrl}}/inventory/{{inventoryItemId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "quantity": 95,
+  "status": "IN_STOCK",
+  "notes": "5 units used"
+}
+
+### ----------------------------------------
+### User Endpoints
+### ----------------------------------------
+
+### Get all users
+GET {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+
+### Get user by ID
+GET {{baseUrl}}/users/USER_ID
+Authorization: Bearer {{authToken}}
+
+### Update user
+PUT {{baseUrl}}/users/USER_ID
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Updated",
+  "lastName": "Name",
+  "email": "updated@example.com"
+}
+
+### ----------------------------------------
+### Notification Endpoints
+### ----------------------------------------
+
+### Create a notification
+POST {{baseUrl}}/notifications
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "userId": "USER_ID",
+  "title": "Appointment Reminder",
+  "message": "You have an appointment tomorrow at 2:00 PM",
+  "type": "APPOINTMENT_REMINDER"
+}
+
+### Get all notifications for current user
+GET {{baseUrl}}/notifications
+Authorization: Bearer {{authToken}}
+
+### Mark notification as read
+PUT {{baseUrl}}/notifications/NOTIFICATION_ID/read
+Authorization: Bearer {{authToken}}
